@@ -1,31 +1,408 @@
-import { StyleSheet } from 'react-native';
+import React, { useEffect, useState, useRef } from "react";
+import { Link } from "expo-router";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  SafeAreaView,
+  Pressable,
+} from "react-native";
+import {
+  QuranApi,
+  Surah,
+  getQuranApi,
+  // getQuranUthmaniApi,
+} from "@/api/quranapi";
+import { useQuery } from "@tanstack/react-query";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import { FlashList, ListRenderItem } from "@shopify/flash-list";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Animated } from "react-native";
 
-import EditScreenInfo from '../../components/EditScreenInfo';
-import { Text, View } from '../../components/Themed';
+import Card from "@/components/Card";
+import { categoryData } from "@/constants";
 
-export default function TabOneScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+const Home = () => {
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
+  const [font, setFont] = useState("System"); // This could be the system font or any default font you prefer.
+  const [fontPickerVisible, setFontPickerVisible] = useState(false);
+  const scrollRef = useRef(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const quranQuery = useQuery({
+    queryKey: ["quran"],
+    queryFn: getQuranApi,
+    refetchOnMount: false,
+  });
+
+  const renderItem1: ListRenderItem<QuranApi> = ({ item }) => (
+    <Card
+      englishName={item?.englishName ?? ""}
+      englishNameTranslation={item?.englishNameTranslation ?? ""}
+      numberOfAyahs={item?.numberOfAyahs ?? 0}
+    />
   );
-}
+
+  {
+    fontPickerVisible && (
+      <View style={styles.fontPicker}>
+        {["system", "Courier New", "Arial"].map(
+          (
+            fontName // Example font names. Replace these with actual ones you intend to offer.
+          ) => (
+            <Pressable
+              key={fontName}
+              style={({ pressed }) => [
+                { opacity: pressed ? 0.7 : 1 },
+                styles.fontOption,
+              ]}
+              onPress={() => {
+                setFont(fontName);
+                setFontPickerVisible(false);
+              }}
+            >
+              <Text style={{ fontFamily: fontName }}>
+                Sample Text in {fontName}
+              </Text>
+            </Pressable>
+          )
+        )}
+      </View>
+    );
+  }
+
+  const opacity = new Animated.Value(0);
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const surahPressIn = () => {
+    Animated.timing(scale, {
+      toValue: 0.97,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const surahPressOut = () => {
+    Animated.timing(scale, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
+    <Pressable onPressIn={surahPressIn} onPressOut={surahPressOut}>
+      <Animated.View
+        style={[styles.surahContainer, { transform: [{ scale }] }]}
+      >
+        <View style={styles.surahMain}>
+          <View style={styles.numberIconWrapper}>
+            <MaterialCommunityIcons
+              name="octagram-outline"
+              size={wp(10)}
+              color="black"
+            />
+            <Text style={styles.surahNumber}>{surah.number}</Text>
+          </View>
+          <View style={styles.surahTextContainer}>
+            <Text style={[styles.surahEnglishName, { fontFamily: font }]}>
+              {surah.englishName}
+            </Text>
+
+            <Text style={styles.surahDetails}>
+              {surah.numberOfAyahs} Ayahs | {surah.revelationType}
+            </Text>
+          </View>
+          <Text style={styles.surahName}>{surah.name}</Text>
+        </View>
+      </Animated.View>
+    </Pressable>
+  );
+
+  if (quranQuery.isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#694508" />
+      </View>
+    );
+  }
+
+  if (quranQuery.isError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>Error fetching data</Text>
+        <Pressable
+          onPress={() => quranQuery.refetch()}
+          style={styles.retryButton}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  <Pressable onPress={() => setFontPickerVisible(true)}>
+    <Text style={{ margin: 10, backgroundColor: "#ddd", padding: 10 }}>
+      Choose Font
+    </Text>
+  </Pressable>;
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        onScroll={({ nativeEvent }) => {
+          if (nativeEvent.contentOffset.y > 200 && !showScrollTop) {
+            setShowScrollTop(true);
+          } else if (nativeEvent.contentOffset.y <= 200 && showScrollTop) {
+            setShowScrollTop(false);
+          }
+        }}
+        scrollEventThrottle={16} // for better performance
+        ref={scrollRef}
+      >
+        <View style={styles.container}>
+          <View style={styles.textWrapper}>
+            {/* Title head for last read*/}
+            <Text style={styles.itemText}>Last Read</Text>
+            {/* <Link href="modal">Present Modal</Link> */}
+          </View>
+
+          {/* <Card title="Quran" content="Nice things." /> */}
+          <View style={styles.flashListWrapper}>
+            <FlashList
+              data={quranQuery.data?.surahs || []}
+              renderItem={renderItem1}
+              horizontal={true}
+              estimatedItemSize={200}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.number.toString()}
+            />
+          </View>
+
+          {/* Title head for categories*/}
+          <View style={styles.headerBar}>
+            {categoryData.map((item, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.categoryContainer,
+                  index === activeCategoryIndex && styles.activeCategory,
+                ]}
+              >
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      opacity: pressed ? 0.7 : 1,
+                      flex: 1, // Ensure it takes up all space within the outer View
+                      backgroundColor: pressed ? "#A37C2770" : "transparent",
+                    },
+                  ]}
+                  onPress={() => setActiveCategoryIndex(index)}
+                >
+                  <Text style={styles.categoryItemText}>{item.name}</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.flashListContainer}>
+            <FlashList
+              data={quranQuery.data?.surahs || []}
+              renderItem={renderItem2}
+              horizontal={false}
+              estimatedItemSize={200}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.number.toString()}
+            />
+          </View>
+        </View>
+      </ScrollView>
+
+      {showScrollTop && (
+        <Pressable
+          style={styles.scrollTopButton}
+          onPress={() => scrollRef.current.scrollTo({ y: 0, animated: true })}
+        >
+          <MaterialCommunityIcons name="arrow-up" size={24} color="white" />
+        </Pressable>
+      )}
+    </SafeAreaView>
+  );
+};
+
+export default Home;
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1, // Ensures the content fills the scroll view
+    paddingBottom: hp(5),
+  },
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#F5F1E8", // Updated background color
+    alignItems: "center",
+    minHeight: hp(100),
+    minWidth: wp(100),
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  textWrapper: {
+    width: wp(95),
+    marginTop: hp(5),
+    marginBottom: hp(2.5), // Added margin bottom
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  itemText: {
+    fontSize: wp(5),
+    fontWeight: "bold",
+    color: "#3D3D3D", // Darker text color for better readability
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f7ede2", // Customize the error container style
+  },
+  headerBar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#A3875B", // Updated to the primary color
+    borderRadius: 10,
+    width: wp(95),
+    marginTop: 10,
+    padding: 10,
+  },
+  categoryItemText: {
+    color: "#5B3E28", // Surface color (almost white) for text on primary background
+    fontSize: hp(2.5),
+  },
+  flashListWrapper: {
+    height: hp("15%"), // this will take up 30% of the screen's height
+    width: wp("100%"), // this ensures it takes up the full width
+    marginBottom: hp("2%"), // adding some bottom margin for separation
+  },
+  surahContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: wp(100), // Assuming you want it to take the full width
+    padding: wp(3),
+    marginBottom: wp(2),
+    borderBottomWidth: wp(0.1), // Add this line for the bottom border
+    borderBottomColor: "#ccc", // This specifies the border color. Adjust as needed.
+    borderRadius: wp(1),
+  },
+  surahTextContainer: {
+    flexDirection: "column",
+    width: wp(60),
+    marginRight: wp(2),
+  },
+  surahNumber: {
+    fontSize: wp(4),
+    position: "absolute",
+    color: "black",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -wp(2.5) }, { translateY: -wp(2.5) }],
+  },
+  surahMain: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: wp(95),
+  },
+  surahEnglishName: {
+    fontSize: wp(4),
+    color: "#3D3D3D",
+    width: wp(55),
+    marginBottom: wp(1),
+  },
+  surahName: {
+    fontSize: wp(5),
+    fontWeight: "bold",
+    flex: 1,
+    overflow: "hidden",
+  },
+  surahDetails: {
+    fontSize: wp(3.5),
+    color: "#A3875B",
+    width: wp(55),
+  },
+  surahAyahs: {
+    fontSize: wp(5),
+  },
+  surahRevelationType: {
+    fontSize: wp(4),
+  },
+  flashListContainer: {
+    width: wp(100),
+    minHeight: hp(100), // This will make it span the entire height
+  },
+  numberIconWrapper: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: wp(10),
+    height: wp(10),
+    position: "relative",
+    marginRight: wp(2), // Spacing between icon and text
+  },
+  categoryContainer: {
+    paddingVertical: 5, // Padding to give pill effect
+    paddingHorizontal: 10, // Padding to give pill effect
+    marginHorizontal: 5, // Spacing between categories
+    borderRadius: 15, // Rounded corners
+    backgroundColor: "transparent", // Default background
+  },
+  activeCategory: {
+    backgroundColor: "#FEF3E0",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+
+  fontPicker: {
+    position: "absolute",
+    width: "100%",
+    height: "50%",
+    backgroundColor: "white",
+    bottom: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    zIndex: 1000, // This ensures the modal appears above all other content.
+  },
+  fontOption: {
+    padding: 10,
+    borderBottomColor: "#ccc",
+    borderBottomWidth: 1,
+  },
+  retryButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#A37C27",
+    borderRadius: 8,
+    elevation: 3,
+  },
+  retryButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  scrollTopButton: {
+    position: "absolute",
+    right: 15,
+    bottom: 15,
+    backgroundColor: "#A37C27",
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
   },
 });

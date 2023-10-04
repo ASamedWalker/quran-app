@@ -1,35 +1,17 @@
-import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet } from 'react-native';
+import { View } from "react-native";
+import { Link, router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
-
-export default function ModalScreen() {
+const Modal = () => {
+  const isPresented = router.canGoBack();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Modal</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/modal.tsx" />
-
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      {/* Use `../` as a simple way to navigate to the root. This is not analogous to "goBack". */}
+      {!isPresented && <Link href="../">Dismiss</Link>}
+      {/* Native modals have dark backgrounds on iOS, set the status bar to light content. */}
+      <StatusBar style="light" />
     </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
+export default Modal;

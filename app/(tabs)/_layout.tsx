@@ -1,55 +1,97 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, useColorScheme } from 'react-native';
+import React from "react";
+import { StyleSheet, Pressable } from "react-native";
+import { Tabs } from "expo-router";
+import { BlurView } from "expo-blur";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import * as Haptics from "expo-haptics";
 
-import Colors from '../../constants/Colors';
+const TabsLayout = () => {
+  const renderIcon = (focused: boolean, name: string) => {
+    let iconName = focused ? name : `${name}-outline`;
 
-/**
- * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
- */
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+    // Trigger haptic feedback for the active tab
+    if (focused) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+    return (
+      <Ionicons
+        name={iconName}
+        size={focused ? 26 : 24} // Notice the size adjustment for active tab
+        color={focused ? "#e91e63" : "gray"}
+        style={{ transform: [{ scale: focused ? 1.1 : 1 }] }} // Slightly scale the active icon
+      />
+    );
+  };
   return (
     <Tabs
+      initialRouteName="Home"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-      }}>
+        tabBarActiveTintColor: "#e91e63",
+        tabBarStyle: styles.tabBar,
+        tabBarBackground: () => (
+          <BlurView
+            tint="light"
+            intensity={60}
+            style={StyleSheet.absoluteFill}
+          />
+        ),
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          tabBarLabel: "Home",
+          tabBarIcon: ({ focused }) => renderIcon(focused, "ios-home"),
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="settings"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarLabel: "Settings",
+          tabBarIcon: ({ focused }) => renderIcon(focused, "ios-settings"),
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="bookmark"
+        options={{
+          tabBarLabel: "Bookmarks",
+          tabBarIcon: ({ focused }) => renderIcon(focused, "bookmark"),
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarLabel: "Profile",
+          tabBarIcon: ({ focused }) => renderIcon(focused, "ios-person-circle"),
+          headerShown: false,
         }}
       />
     </Tabs>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  tabBar: {
+    position: "absolute",
+    backgroundColor: "transparent",
+    borderRadius: wp("5%"), // use wp or hp as needed
+    margin: wp("2.5%"), // adjust values as needed
+    padding: wp("1%"),
+    overflow: "hidden",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: wp("0%"), height: hp("0.25%") },
+    shadowOpacity: 0.25,
+    shadowRadius: wp("1%"),
+  },
+});
+
+export default TabsLayout;
