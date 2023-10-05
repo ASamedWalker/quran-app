@@ -1,12 +1,14 @@
-import React from "react";
-import { Pressable } from "react-native";
+import React, { useState } from "react";
+import { Pressable, View, Text, StyleSheet } from "react-native";
 import { Link, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Drawer } from "expo-router/drawer";
 
 const queryClient = new QueryClient();
 
 const HomeLayout = () => {
+
   return (
     <QueryClientProvider client={queryClient}>
       <Stack
@@ -19,16 +21,12 @@ const HomeLayout = () => {
             fontWeight: "bold",
           },
           headerLeft: () => (
-            <Pressable
-              onPress={() => {
-                /* Your action for the left icon */
-              }}
-            >
+            <Pressable>
               <Ionicons
                 name="ios-menu-outline"
                 size={34}
                 color="black"
-                style={{ marginLeft: 15 }}
+                style={{ marginLeft: 10, marginTop: 2 }}
               />
             </Pressable>
           ),
@@ -42,7 +40,7 @@ const HomeLayout = () => {
                 name="search-outline"
                 size={32}
                 color="black"
-                style={{ marginRight: 15 }}
+                style={{ marginRight: 5, marginTop: 2 }}
               />
             </Pressable>
           ),
@@ -63,5 +61,6 @@ const HomeLayout = () => {
     </QueryClientProvider>
   );
 };
+
 
 export default HomeLayout;
