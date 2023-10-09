@@ -51,25 +51,9 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="surahDetail"
         options={{
-          tabBarLabel: "Settings",
-          tabBarIcon: ({ focused }) => renderIcon(focused, "ios-settings"),
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="bookmark"
-        options={{
-          tabBarLabel: "Bookmarks",
-          tabBarIcon: ({ focused }) => renderIcon(focused, "bookmark"),
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarLabel: "Profile",
+          tabBarLabel: "Surahs",
           tabBarIcon: ({ focused }) => renderIcon(focused, "ios-person-circle"),
           headerShown: false,
         }}

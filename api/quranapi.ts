@@ -62,34 +62,34 @@ export const getQuranApi = async (): Promise<{ surahs: QuranApi[] }> => {
 };
 
 // // Adding a new function for a second API call
-// export const getQuranUthmaniApi = async (): Promise<{ ayah: Surah[] }> => {
-//   await delay(200 + Math.floor(Math.random() * 2000));
-//   try {
-//     const response = await axios.get(
-//       "http://api.alquran.cloud/v1/quran/quran-uthmani"
-//     );
-//     const responseData = response.data;
+export const getQuranUthmaniApi = async (): Promise<{ ayah: Surah[] }> => {
+  await delay(200 + Math.floor(Math.random() * 2000));
+  try {
+    const response = await axios.get(
+      "http://api.alquran.cloud/v1/quran/quran-uthmani"
+    );
+    const responseData = response.data;
 
-//     if (!responseData?.data) {
-//       throw new Error("Invalid data: 'data' property is missing or undefined");
-//     }
+    if (!responseData?.data) {
+      throw new Error("Invalid data: 'data' property is missing or undefined");
+    }
 
-//     // The response appears to be an array of Surahs directly, so you can map it to Surah
-//     const ayah: Surah[] = responseData.data.surahs.map((ayah: any) => ({
-//       number: ayah.number,
-//       name: ayah.name,
-//       englishName: ayah.englishName,
-//       englishNameTranslation: ayah.englishNameTranslation,
-//       revelationType: ayah.revelationType,
-//       ayahs: ayah.ayahs,
-//       // Add any additional properties here if needed
-//     }));
+    // The response appears to be an array of Surahs directly, so you can map it to Surah
+    const ayah: Surah[] = responseData.data.surahs.map((ayah: any) => ({
+      number: ayah.number,
+      name: ayah.name,
+      englishName: ayah.englishName,
+      englishNameTranslation: ayah.englishNameTranslation,
+      revelationType: ayah.revelationType,
+      ayahs: ayah.ayahs,
+      // Add any additional properties here if needed
+    }));
 
-//     return { ayah };
-//   } catch (error) {
-//     throw error;
-//   }
-// };
+    return { ayah };
+  } catch (error) {
+    throw error;
+  }
+};
 
 function delay(t: number) {
   return new Promise((resolve, reject) => {

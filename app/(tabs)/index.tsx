@@ -13,7 +13,6 @@ import {
   QuranApi,
   Surah,
   getQuranApi,
-  // getQuranUthmaniApi,
 } from "@/api/quranapi";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -76,7 +75,6 @@ const Home = () => {
     );
   }
 
-  const opacity = new Animated.Value(0);
   const scale = useRef(new Animated.Value(1)).current;
 
   const surahPressIn = () => {
@@ -96,32 +94,34 @@ const Home = () => {
   };
 
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
-    <Pressable onPressIn={surahPressIn} onPressOut={surahPressOut}>
-      <Animated.View
-        style={[styles.surahContainer, { transform: [{ scale }] }]}
-      >
-        <View style={styles.surahMain}>
-          <View style={styles.numberIconWrapper}>
-            <MaterialCommunityIcons
-              name="octagram-outline"
-              size={wp(10)}
-              color="black"
-            />
-            <Text style={styles.surahNumber}>{surah.number}</Text>
-          </View>
-          <View style={styles.surahTextContainer}>
-            <Text style={[styles.surahEnglishName, { fontFamily: font }]}>
-              {surah.englishName}
-            </Text>
+    <Link href={{ pathname: "/surahDetail", params: { id: surah.number.toString() }}} asChild>
+      <Pressable onPressIn={surahPressIn} onPressOut={surahPressOut}>
+        <Animated.View
+          style={[styles.surahContainer, { transform: [{ scale }] }]}
+        >
+          <View style={styles.surahMain}>
+            <View style={styles.numberIconWrapper}>
+              <MaterialCommunityIcons
+                name="octagram-outline"
+                size={wp(10)}
+                color="black"
+              />
+              <Text style={styles.surahNumber}>{surah.number}</Text>
+            </View>
+            <View style={styles.surahTextContainer}>
+              <Text style={[styles.surahEnglishName, { fontFamily: font }]}>
+                {surah.englishName}
+              </Text>
 
-            <Text style={styles.surahDetails}>
-              {surah.numberOfAyahs} Ayahs | {surah.revelationType}
-            </Text>
+              <Text style={styles.surahDetails}>
+                {surah.numberOfAyahs} Ayahs | {surah.revelationType}
+              </Text>
+            </View>
+            <Text style={styles.surahName}>{surah.name}</Text>
           </View>
-          <Text style={styles.surahName}>{surah.name}</Text>
-        </View>
-      </Animated.View>
-    </Pressable>
+        </Animated.View>
+      </Pressable>
+    </Link>
   );
 
   if (quranQuery.isLoading) {
