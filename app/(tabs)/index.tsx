@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -8,12 +8,10 @@ import {
   ScrollView,
   SafeAreaView,
   Pressable,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
-import {
-  QuranApi,
-  Surah,
-  getQuranApi,
-} from "@/api/quranapi";
+import { QuranApi, Surah, getQuranApi } from "@/api/quranapi";
 import { useQuery } from "@tanstack/react-query";
 import {
   widthPercentageToDP as wp,
@@ -24,6 +22,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Animated } from "react-native";
 
 import Card from "@/components/Card";
+// Import the new components
+import SurahCard from "@/components/SurahCard";
+import FontPicker from "@/components/FontPicker";
+import ErrorState from "@/components/ErrorState";
+import LoadingState from "@/components/LoadingState";
 import { categoryData } from "@/constants";
 
 const Home = () => {
@@ -94,7 +97,13 @@ const Home = () => {
   };
 
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
-    <Link href={{ pathname: "/surahDetail", params: { id: surah.number.toString() }}} asChild>
+    <Link
+      href={{
+        pathname: "/surahDetail",
+        params: { id: surah.number.toString() },
+      }}
+      asChild
+    >
       <Pressable onPressIn={surahPressIn} onPressOut={surahPressOut}>
         <Animated.View
           style={[styles.surahContainer, { transform: [{ scale }] }]}
@@ -125,11 +134,7 @@ const Home = () => {
   );
 
   if (quranQuery.isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#694508" />
-      </View>
-    );
+    return <ActivityIndicator />;
   }
 
   if (quranQuery.isError) {
@@ -152,18 +157,32 @@ const Home = () => {
     </Text>
   </Pressable>;
 
+  const handleScroll = useCallback(
+    ({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
+      if (
+        nativeEvent.contentOffset &&
+        nativeEvent.contentOffset.y > 200 &&
+        !showScrollTop
+      ) {
+        setShowScrollTop(true);
+      } else if (
+        nativeEvent.contentOffset &&
+        nativeEvent.contentOffset.y <= 200 &&
+        showScrollTop
+      ) {
+        setShowScrollTop(false);
+      }
+    },
+
+    [showScrollTop]
+  );
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        onScroll={({ nativeEvent }) => {
-          if (nativeEvent.contentOffset.y > 200 && !showScrollTop) {
-            setShowScrollTop(true);
-          } else if (nativeEvent.contentOffset.y <= 200 && showScrollTop) {
-            setShowScrollTop(false);
-          }
-        }}
         scrollEventThrottle={16} // for better performance
+        onScroll={handleScroll}
         ref={scrollRef}
       >
         <View style={styles.container}>
@@ -223,15 +242,6 @@ const Home = () => {
           </View>
         </View>
       </ScrollView>
-
-      {showScrollTop && (
-        <Pressable
-          style={styles.scrollTopButton}
-          onPress={() => scrollRef.current.scrollTo({ y: 0, animated: true })}
-        >
-          <MaterialCommunityIcons name="arrow-up" size={24} color="white" />
-        </Pressable>
-      )}
     </SafeAreaView>
   );
 };
@@ -265,12 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f7ede2", // Customize the error container style
-  },
+
   headerBar: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -323,6 +328,12 @@ const styles = StyleSheet.create({
     color: "#3D3D3D",
     width: wp(55),
     marginBottom: wp(1),
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f7ede2", // Customize the error container style
   },
   surahName: {
     fontSize: wp(5),
