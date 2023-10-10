@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -8,11 +8,11 @@ import {
   ScrollView,
   SafeAreaView,
   Pressable,
-  NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
-import { QuranApi, Surah, getQuranApi } from "@/api/quranapi";
+import { getAllSurahs, Surah } from "@/api/quranapi";
 import { useQuery } from "@tanstack/react-query";
+
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -31,52 +31,22 @@ import { categoryData } from "@/constants";
 
 const Home = () => {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
-  const [font, setFont] = useState("System"); // This could be the system font or any default font you prefer.
-  const [fontPickerVisible, setFontPickerVisible] = useState(false);
   const scrollRef = useRef(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const quranQuery = useQuery({
     queryKey: ["quran"],
-    queryFn: getQuranApi,
+    queryFn: getAllSurahs,
     refetchOnMount: false,
   });
 
-  const renderItem1: ListRenderItem<QuranApi> = ({ item }) => (
+  const renderItem1: ListRenderItem<Surah> = ({ item }) => (
     <Card
       englishName={item?.englishName ?? ""}
       englishNameTranslation={item?.englishNameTranslation ?? ""}
-      numberOfAyahs={item?.numberOfAyahs ?? 0}
+      surahNumber={item?.number ?? 0}
     />
   );
-
-  {
-    fontPickerVisible && (
-      <View style={styles.fontPicker}>
-        {["system", "Courier New", "Arial"].map(
-          (
-            fontName // Example font names. Replace these with actual ones you intend to offer.
-          ) => (
-            <Pressable
-              key={fontName}
-              style={({ pressed }) => [
-                { opacity: pressed ? 0.7 : 1 },
-                styles.fontOption,
-              ]}
-              onPress={() => {
-                setFont(fontName);
-                setFontPickerVisible(false);
-              }}
-            >
-              <Text style={{ fontFamily: fontName }}>
-                Sample Text in {fontName}
-              </Text>
-            </Pressable>
-          )
-        )}
-      </View>
-    );
-  }
 
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -98,10 +68,12 @@ const Home = () => {
 
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
     <Link
-      href={{
-        pathname: "/surahDetail",
-        params: { id: surah.number.toString() },
-      }}
+      href={
+        {
+          pathname: "/surahDetails",
+          params: { surahNumber: surah.number.toString() },
+        } as any
+      }
       asChild
     >
       <Pressable onPressIn={surahPressIn} onPressOut={surahPressOut}>
@@ -118,12 +90,12 @@ const Home = () => {
               <Text style={styles.surahNumber}>{surah.number}</Text>
             </View>
             <View style={styles.surahTextContainer}>
-              <Text style={[styles.surahEnglishName, { fontFamily: font }]}>
+              <Text style={[styles.surahEnglishName, { fontFamily: "" }]}>
                 {surah.englishName}
               </Text>
 
               <Text style={styles.surahDetails}>
-                {surah.numberOfAyahs} Ayahs | {surah.revelationType}
+                {surah.number} Ayahs | {surah.revelationType}
               </Text>
             </View>
             <Text style={styles.surahName}>{surah.name}</Text>
@@ -150,12 +122,6 @@ const Home = () => {
       </View>
     );
   }
-
-  <Pressable onPress={() => setFontPickerVisible(true)}>
-    <Text style={{ margin: 10, backgroundColor: "#ddd", padding: 10 }}>
-      Choose Font
-    </Text>
-  </Pressable>;
 
   const handleScroll = useCallback(
     ({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
@@ -203,7 +169,6 @@ const Home = () => {
               keyExtractor={(item) => item.number.toString()}
             />
           </View>
-
           {/* Title head for categories*/}
           <View style={styles.headerBar}>
             {categoryData.map((item, index) => (
@@ -229,7 +194,6 @@ const Home = () => {
               </View>
             ))}
           </View>
-
           <View style={styles.flashListContainer}>
             <FlashList
               data={quranQuery.data?.surahs || []}

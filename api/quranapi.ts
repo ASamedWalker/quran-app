@@ -1,26 +1,16 @@
-// Purpose: API for fetching Quran data from http://api.alquran.cloud/v1/surah
 import axios from "axios";
-interface Ayah {
+
+// 1. Define interfaces
+export interface Ayah {
   number: number;
   text: string;
   numberInSurah: number;
-  surah: number;
   juz: number;
   manzil: number;
   page: number;
   ruku: number;
   hizbQuarter: number;
   sajda: boolean;
-  // Add other Ayah properties if needed
-}
-
-export interface QuranApi {
-  number: number;
-  name: string;
-  englishName: string;
-  englishNameTranslation: string;
-  numberOfAyahs: number;
-  revelationType: string;
 }
 
 export interface Surah {
@@ -30,43 +20,30 @@ export interface Surah {
   englishNameTranslation: string;
   revelationType: string;
   ayahs: Ayah[];
-  // Add other Surah properties if needed
 }
 
-export const getQuranApi = async (): Promise<{ surahs: QuranApi[] }> => {
-  await delay(200 + Math.floor(Math.random() * 2000));
+export const getAllSurahs = async (): Promise<Surah[]> => {
   try {
-    const response = await axios.get("http://api.alquran.cloud/v1/surah");
+    const response = await axios.get('http://api.alquran.cloud/v1/surahs');
     const responseData = response.data;
 
-    // Check if the required properties are present in the API response
     if (!responseData?.data) {
       throw new Error("Invalid data: 'data' property is missing or undefined");
     }
 
-    // The response appears to be an array of Surahs directly, so you can map it to QuranApi
-    const surahs: QuranApi[] = responseData.data.map((surah: any) => ({
-      number: surah.number,
-      name: surah.name,
-      englishName: surah.englishName,
-      englishNameTranslation: surah.englishNameTranslation,
-      numberOfAyahs: surah.numberOfAyahs,
-      revelationType: surah.revelationType,
-      // Add any additional properties here if needed
-    }));
 
-    return { surahs };
+
+    return responseData.data;
   } catch (error) {
     throw error;
   }
 };
 
-// // Adding a new function for a second API call
-export const getQuranUthmaniApi = async (): Promise<{ ayah: Surah[] }> => {
-  await delay(200 + Math.floor(Math.random() * 2000));
+
+ export const getSurahByNumber = async (surahNumber: number): Promise<Surah> => {
   try {
     const response = await axios.get(
-      "http://api.alquran.cloud/v1/quran/quran-uthmani"
+      `http://api.alquran.cloud/v1/surah/${surahNumber}`
     );
     const responseData = response.data;
 
@@ -74,25 +51,23 @@ export const getQuranUthmaniApi = async (): Promise<{ ayah: Surah[] }> => {
       throw new Error("Invalid data: 'data' property is missing or undefined");
     }
 
-    // The response appears to be an array of Surahs directly, so you can map it to Surah
-    const ayah: Surah[] = responseData.data.surahs.map((ayah: any) => ({
-      number: ayah.number,
-      name: ayah.name,
-      englishName: ayah.englishName,
-      englishNameTranslation: ayah.englishNameTranslation,
-      revelationType: ayah.revelationType,
-      ayahs: ayah.ayahs,
-      // Add any additional properties here if needed
-    }));
+    const surah: Surah = {
+      number: responseData.data.number,
+      name: responseData.data.name,
+      englishName: responseData.data.englishName,
+      englishNameTranslation: responseData.data.englishNameTranslation,
+      revelationType: responseData.data.revelationType,
+      ayahs: responseData.data.ayahs,
+    };
 
-    return { ayah };
+    return surah;
   } catch (error) {
     throw error;
   }
 };
 
-function delay(t: number) {
+const delay = (t: number) => {
   return new Promise((resolve, reject) => {
     setTimeout(resolve, t);
   });
-}
+};

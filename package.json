@@ -15,7 +15,7 @@
   "dependencies": {
     "@expo/vector-icons": "^13.0.0",
     "@react-navigation/drawer": "^6.6.4",
-    "@react-navigation/native": "^6.0.2",
+    "@react-navigation/native": "^6.1.8",
     "@shopify/flash-list": "1.4.3",
     "@tanstack/eslint-plugin-query": "^4.34.1",
     "@tanstack/react-query": "^4.35.3",

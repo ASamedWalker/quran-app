@@ -51,7 +51,7 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="surahDetail"
+        name="surahDetails"
         options={{
           tabBarLabel: "Surahs",
           tabBarIcon: ({ focused }) => renderIcon(focused, "ios-person-circle"),

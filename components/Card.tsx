@@ -9,19 +9,19 @@ import {
 interface CardProps {
   englishName: string;
   englishNameTranslation: string;
-  numberOfAyahs?: number;
+  surahNumber: number;
 }
 
 const Card = ({
   englishName,
   englishNameTranslation,
-  numberOfAyahs,
+  surahNumber,
 }: CardProps) => {
   return (
     <View style={styles.card}>
       <Text style={styles.versetitle}>{englishName}</Text>
       <Text style={styles.versecontent}>{englishNameTranslation}</Text>
-      <Text style={styles.versecontent}>Verses: {numberOfAyahs}</Text>
+      <Text style={styles.versecontent}>Verses: {surahNumber}</Text>
     </View>
   );
 };
