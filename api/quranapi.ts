@@ -22,49 +22,69 @@ export interface Surah {
   ayahs: Ayah[];
 }
 
-export const getAllSurahs = async (): Promise<Surah[]> => {
+export const getSurahList = async (): Promise<Surah[]> => {
   try {
-    const response = await axios.get('http://api.alquran.cloud/v1/surahs');
+    const response = await axios.get('http://api.alquran.cloud/v1/quran/quran-uthmani');
     const responseData = response.data;
 
-    if (!responseData?.data) {
-      throw new Error("Invalid data: 'data' property is missing or undefined");
+    if (!responseData?.data?.surahs) {
+      throw new Error("Invalid data: 'surahs' property is missing or undefined");
     }
 
-
-
-    return responseData.data;
+    // Map the surahs to exclude ayahs for the list view
+    return responseData.data.surahs.map((surah: any) => ({
+      number: surah.number,
+      name: surah.name,
+      englishName: surah.englishName,
+      englishNameTranslation: surah.englishNameTranslation,
+      revelationType: surah.revelationType
+    }));
   } catch (error) {
     throw error;
   }
 };
 
 
- export const getSurahByNumber = async (surahNumber: number): Promise<Surah> => {
+export const getSurah = async (surahNumber: number): Promise<Surah> => {
   try {
-    const response = await axios.get(
-      `http://api.alquran.cloud/v1/surah/${surahNumber}`
-    );
+    const response = await axios.get('http://api.alquran.cloud/v1/quran/quran-uthmani');
     const responseData = response.data;
 
-    if (!responseData?.data) {
-      throw new Error("Invalid data: 'data' property is missing or undefined");
+    if (!responseData?.data?.surahs) {
+      throw new Error("Invalid data: 'surahs' property is missing or undefined");
+    }
+
+    const surahData = responseData.data.surahs.find((s: any) => s.number === surahNumber);
+    if (!surahData) {
+      throw new Error(`Surah with number ${surahNumber} not found`);
     }
 
     const surah: Surah = {
-      number: responseData.data.number,
-      name: responseData.data.name,
-      englishName: responseData.data.englishName,
-      englishNameTranslation: responseData.data.englishNameTranslation,
-      revelationType: responseData.data.revelationType,
-      ayahs: responseData.data.ayahs,
+      number: surahData.number,
+      name: surahData.name,
+      englishName: surahData.englishName,
+      englishNameTranslation: surahData.englishNameTranslation,
+      revelationType: surahData.revelationType,
+      ayahs: surahData.ayahs.map((ayahData: any) => ({
+        number: ayahData.number,
+        text: ayahData.text,
+        numberInSurah: ayahData.numberInSurah,
+        juz: ayahData.juz,
+        manzil: ayahData.manzil,
+        page: ayahData.page,
+        ruku: ayahData.ruku,
+        hizbQuarter: ayahData.hizbQuarter,
+        sajda: ayahData.sajda
+      }))
     };
 
     return surah;
+
   } catch (error) {
     throw error;
   }
 };
+
 
 const delay = (t: number) => {
   return new Promise((resolve, reject) => {

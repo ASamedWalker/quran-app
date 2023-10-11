@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -8,9 +8,9 @@ import {
   ScrollView,
   SafeAreaView,
   Pressable,
-  NativeScrollEvent,
 } from "react-native";
-import { getAllSurahs, Surah } from "@/api/quranapi";
+import { getSurahList, Surah } from "@/api/quranapi";
+import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -22,21 +22,16 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Animated } from "react-native";
 
 import Card from "@/components/Card";
-// Import the new components
-import SurahCard from "@/components/SurahCard";
-import FontPicker from "@/components/FontPicker";
-import ErrorState from "@/components/ErrorState";
-import LoadingState from "@/components/LoadingState";
 import { categoryData } from "@/constants";
 
 const Home = () => {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
   const scrollRef = useRef(null);
-  const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const quranQuery = useQuery({
-    queryKey: ["quran"],
-    queryFn: getAllSurahs,
+  // Fetching the list of Surahs
+  const surahListQuery = useQuery({
+    queryKey: ["surahList"],
+    queryFn: getSurahList,
     refetchOnMount: false,
   });
 
@@ -66,12 +61,13 @@ const Home = () => {
     }).start();
   };
 
+
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
     <Link
       href={
         {
-          pathname: "/surahDetails",
-          params: { surahNumber: surah.number.toString() },
+          pathname: `/surahDetails?surahNumber=${surah.number}`,
+          searchParams: { surahNumber: surah.number.toString() },
         } as any
       }
       asChild
@@ -105,16 +101,16 @@ const Home = () => {
     </Link>
   );
 
-  if (quranQuery.isLoading) {
+  if (surahListQuery.isLoading) {
     return <ActivityIndicator />;
   }
 
-  if (quranQuery.isError) {
+  if (surahListQuery.isError) {
     return (
       <View style={styles.errorContainer}>
         <Text>Error fetching data</Text>
         <Pressable
-          onPress={() => quranQuery.refetch()}
+          onPress={() => surahListQuery.refetch()}
           style={styles.retryButton}
         >
           <Text style={styles.retryButtonText}>Retry</Text>
@@ -123,32 +119,11 @@ const Home = () => {
     );
   }
 
-  const handleScroll = useCallback(
-    ({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
-      if (
-        nativeEvent.contentOffset &&
-        nativeEvent.contentOffset.y > 200 &&
-        !showScrollTop
-      ) {
-        setShowScrollTop(true);
-      } else if (
-        nativeEvent.contentOffset &&
-        nativeEvent.contentOffset.y <= 200 &&
-        showScrollTop
-      ) {
-        setShowScrollTop(false);
-      }
-    },
-
-    [showScrollTop]
-  );
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         scrollEventThrottle={16} // for better performance
-        onScroll={handleScroll}
         ref={scrollRef}
       >
         <View style={styles.container}>
@@ -161,7 +136,7 @@ const Home = () => {
           {/* <Card title="Quran" content="Nice things." /> */}
           <View style={styles.flashListWrapper}>
             <FlashList
-              data={quranQuery.data?.surahs || []}
+              data={surahListQuery.data || []}
               renderItem={renderItem1}
               horizontal={true}
               estimatedItemSize={200}
@@ -196,7 +171,7 @@ const Home = () => {
           </View>
           <View style={styles.flashListContainer}>
             <FlashList
-              data={quranQuery.data?.surahs || []}
+              data={surahListQuery.data || []}
               renderItem={renderItem2}
               horizontal={false}
               estimatedItemSize={200}

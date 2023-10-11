@@ -1,37 +1,58 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { FlashList } from "@shopify/flash-list";
+import { FlashList, ListRenderItem } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
-import { getSurahByNumber } from "@/api/quranapi";
+import { getSurah, Ayah } from "@/api/quranapi";
 
 const SurahDetails: React.FC = () => {
   // Access the params from the URL.
-  const { surahId } = useLocalSearchParams<{ surahId: string }>();
+  const { surahNumber: surahNumberString } = useLocalSearchParams<{
+    surahNumber: string;
+  }>();
+  const surahNumberInt = parseInt(surahNumberString, 10);
 
-  const surahQuery = useQuery({
-    queryKey: ["surah", surahId],
-    queryFn: () => getSurahByNumber(Number(surahId)),
+  const surahDetailsQuery = useQuery({
+    queryKey: ["surahDetails", surahNumberInt],
+    queryFn: () => getSurah(surahNumberInt),
     refetchOnMount: false,
+    enabled: !!surahNumberInt, // only run the query if surahNumber exists
+    onSuccess: (data) => {
+      console.log("Data fetched successfully: ", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching data: ", error);
+    },
   });
 
-  if (surahQuery.isLoading) {
+  if (surahDetailsQuery.isLoading) {
     return <Text>Loading...</Text>;
   }
 
-  if (surahQuery.isError) {
-    return <Text>Error: {surahQuery.error.message}</Text>;
+  if (surahDetailsQuery.isError) {
+    const err = surahDetailsQuery.error as Error;
+    return <Text>Error: {err.message}</Text>;
   }
 
-  const surah = surahQuery.data;
+  const renderItem1: ListRenderItem<Ayah> = ({ item: ayah }) => (
+    <View>
+      <Text>{ayah.text}</Text>
+    </View>
+  );
+
+  // Check if surah data exists
+  if (!surahDetailsQuery.data || !surahDetailsQuery.data.ayahs) {
+    return <Text>No Surah Data Available</Text>;
+  }
+
+  const surah = surahDetailsQuery.data;
 
   return (
-    <View>
-      <Text>{surah.name}</Text>
-      <Text>{surah.englishName}</Text>
+    <View style={{ flex: 1, minHeight: 200 }}>
       <FlashList
         data={surah.ayahs}
-        renderItem={({ item: ayah }) => <Text>{ayah.text}</Text>}
+        renderItem={renderItem1}
+        estimatedItemSize={50}
       />
     </View>
   );
