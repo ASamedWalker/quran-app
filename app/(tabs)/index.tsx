@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -10,9 +10,8 @@ import {
   Pressable,
 } from "react-native";
 import { getSurahList, Surah } from "@/api/quranapi";
-import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-
+import * as Font from "expo-font";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -26,7 +25,26 @@ import { categoryData } from "@/constants";
 
 const Home = () => {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  // const [fontsLoaded] = useFonts({
+  //   "UthmanicHafs": require("../../assets/fonts/KFGQPC_UthmanicScriptHAFS_Regular.otf"),
+  //   "Roboto": require("../../assets/fonts/Roboto-Regular.ttf"),
+  // });
   const scrollRef = useRef(null);
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        "UthmanicHafs": require("../../assets/fonts/KFGQPC_UthmanicScriptHAFS_Regular.otf"),
+      });
+      setFontsLoaded(true);
+    }
+
+    loadFonts();
+  }, []);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   // Fetching the list of Surahs
   const surahListQuery = useQuery({
@@ -60,7 +78,6 @@ const Home = () => {
       useNativeDriver: true,
     }).start();
   };
-
 
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
     <Link

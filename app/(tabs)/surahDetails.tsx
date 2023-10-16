@@ -1,6 +1,6 @@
-import React, {useEffect} from "react";
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-// import { useFonts } from "expo-font";
+
 import { useLocalSearchParams } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList, ListRenderItem } from "@shopify/flash-list";
@@ -10,21 +10,12 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-
-
 const SurahDetails: React.FC = () => {
-  // const [fontsLoaded] = useFonts({
-  //   "UthmanicHafs": require("../../assets/fonts/SpaceMono-Regular.ttf"),
-  // });
   // Access the params from the URL.
   const { surahNumber: surahNumberString } = useLocalSearchParams<{
     surahNumber: string;
   }>();
   const surahNumberInt = parseInt(surahNumberString, 10);
-
-  // if (!fontsLoaded) {
-  //   return null;
-  // }
 
   const surahDetailsQuery = useQuery({
     queryKey: ["surahDetails", surahNumberInt],
@@ -100,6 +91,7 @@ const styles = StyleSheet.create({
     marginTop: wp("1%"),
   },
   translationText: {
+    fontFamily: "Roboto",
     fontSize: wp("4%"),
     color: "#666",
     marginTop: wp("1%"),
@@ -107,3 +99,4 @@ const styles = StyleSheet.create({
 });
 
 export default SurahDetails;
+
