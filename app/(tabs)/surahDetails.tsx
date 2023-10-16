@@ -1,20 +1,34 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React, {useEffect} from "react";
+import { View, Text, StyleSheet } from "react-native";
+// import { useFonts } from "expo-font";
 import { useLocalSearchParams } from "expo-router";
-import { FlashList, ListRenderItem } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
-import { getSurah, Ayah } from "@/api/quranapi";
+import { FlashList, ListRenderItem } from "@shopify/flash-list";
+import { getSurahWithTranslation, Ayah } from "@/api/quranapi";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+
+
 
 const SurahDetails: React.FC = () => {
+  // const [fontsLoaded] = useFonts({
+  //   "UthmanicHafs": require("../../assets/fonts/SpaceMono-Regular.ttf"),
+  // });
   // Access the params from the URL.
   const { surahNumber: surahNumberString } = useLocalSearchParams<{
     surahNumber: string;
   }>();
   const surahNumberInt = parseInt(surahNumberString, 10);
 
+  // if (!fontsLoaded) {
+  //   return null;
+  // }
+
   const surahDetailsQuery = useQuery({
     queryKey: ["surahDetails", surahNumberInt],
-    queryFn: () => getSurah(surahNumberInt),
+    queryFn: () => getSurahWithTranslation(surahNumberInt),
     refetchOnMount: false,
     enabled: !!surahNumberInt, // only run the query if surahNumber exists
     onSuccess: (data) => {
@@ -35,8 +49,15 @@ const SurahDetails: React.FC = () => {
   }
 
   const renderItem1: ListRenderItem<Ayah> = ({ item: ayah }) => (
-    <View>
-      <Text>{ayah.text}</Text>
+    <View style={styles.ayahContainer}>
+      <Text style={styles.ayahText}>{ayah.text}</Text>
+      {ayah.translation && (
+        <Text style={styles.translationText}>{ayah.translation}</Text>
+      )}
+      <Text style={styles.ayahDetails}>
+        Ayah: {ayah.numberInSurah} | Juz: {ayah.juz} | Page: {ayah.page}
+      </Text>
+      {ayah.sajda ? <Text style={styles.sajdaText}>Contains Sajda</Text> : null}
     </View>
   );
 
@@ -57,5 +78,32 @@ const SurahDetails: React.FC = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  ayahContainer: {
+    padding: wp("2%"),
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  ayahText: {
+    fontFamily: "UthmanicHafs",
+    fontSize: wp("5%"),
+    textAlign: "right",
+  },
+  ayahDetails: {
+    fontSize: wp("3%"),
+    color: "#888",
+    marginTop: wp("1%"),
+  },
+  sajdaText: {
+    color: "#D9534F",
+    marginTop: wp("1%"),
+  },
+  translationText: {
+    fontSize: wp("4%"),
+    color: "#666",
+    marginTop: wp("1%"),
+  },
+});
 
 export default SurahDetails;
