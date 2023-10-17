@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -9,9 +9,10 @@ import {
   SafeAreaView,
   Pressable,
 } from "react-native";
-import { getSurahList, Surah } from "@/api/quranapi";
+// import { useFonts } from 'expo-font';
+// import * as SplashScreen from 'expo-splash-screen';
 import { useQuery } from "@tanstack/react-query";
-import * as Font from "expo-font";
+import { getSurahList, Surah } from "@/api/quranapi";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -23,28 +24,37 @@ import { Animated } from "react-native";
 import Card from "@/components/Card";
 import { categoryData } from "@/constants";
 
+
 const Home = () => {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
-  const [fontsLoaded, setFontsLoaded] = useState(false);
   // const [fontsLoaded] = useFonts({
   //   "UthmanicHafs": require("../../assets/fonts/KFGQPC_UthmanicScriptHAFS_Regular.otf"),
   //   "Roboto": require("../../assets/fonts/Roboto-Regular.ttf"),
+  //   "SpaceMono": require("../../assets/fonts/SpaceMono-Regular.ttf"),
   // });
-  const scrollRef = useRef(null);
-  useEffect(() => {
-    async function loadFonts() {
-      await Font.loadAsync({
-        "UthmanicHafs": require("../../assets/fonts/KFGQPC_UthmanicScriptHAFS_Regular.otf"),
-      });
-      setFontsLoaded(true);
-    }
 
-    loadFonts();
-  }, []);
+  // useEffect(() => {
+  //   async function prepare() {
+  //     try {
+  //       await SplashScreen.preventAutoHideAsync();
+  //     } catch (e) {
+  //       console.warn(e);
+  //     } finally {
+  //       await new Promise((resolve) => setTimeout(resolve, 2000));
+  //       await SplashScreen.hideAsync();
+  //     }
+  //   }
+  //   prepare();
+  // }, []);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+
+
+  // if (!fontsLoaded) {
+  //   return null;
+  // } else {
+  //   SplashScreen.hideAsync();
+  // }
+
 
   // Fetching the list of Surahs
   const surahListQuery = useQuery({
@@ -61,23 +71,23 @@ const Home = () => {
     />
   );
 
-  const scale = useRef(new Animated.Value(1)).current;
+  // const scale = useRef(new Animated.Value(1)).current;
 
-  const surahPressIn = () => {
-    Animated.timing(scale, {
-      toValue: 0.97,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
+  // const surahPressIn = () => {
+  //   Animated.timing(scale, {
+  //     toValue: 0.97,
+  //     duration: 200,
+  //     useNativeDriver: true,
+  //   }).start();
+  // };
 
-  const surahPressOut = () => {
-    Animated.timing(scale, {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
+  // const surahPressOut = () => {
+  //   Animated.timing(scale, {
+  //     toValue: 1,
+  //     duration: 200,
+  //     useNativeDriver: true,
+  //   }).start();
+  // };
 
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
     <Link
@@ -89,10 +99,8 @@ const Home = () => {
       }
       asChild
     >
-      <Pressable onPressIn={surahPressIn} onPressOut={surahPressOut}>
-        <Animated.View
-          style={[styles.surahContainer, { transform: [{ scale }] }]}
-        >
+      <Pressable>
+        <Animated.View style={[styles.surahContainer]}>
           <View style={styles.surahMain}>
             <View style={styles.numberIconWrapper}>
               <MaterialCommunityIcons
@@ -141,7 +149,6 @@ const Home = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         scrollEventThrottle={16} // for better performance
-        ref={scrollRef}
       >
         <View style={styles.container}>
           <View style={styles.textWrapper}>
