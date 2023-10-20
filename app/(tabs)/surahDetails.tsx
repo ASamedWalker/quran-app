@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, Stack } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList, ListRenderItem } from "@shopify/flash-list";
 import { getSurahWithTranslation, Ayah } from "@/api/quranapi";
@@ -12,8 +11,9 @@ import {
 
 const SurahDetails: React.FC = () => {
   // Access the params from the URL.
-  const { surahNumber: surahNumberString } = useLocalSearchParams<{
+  const { surahNumber: surahNumberString, surahName } = useLocalSearchParams<{
     surahNumber: string;
+    surahName: string;
   }>();
   const surahNumberInt = parseInt(surahNumberString, 10);
 
@@ -41,6 +41,14 @@ const SurahDetails: React.FC = () => {
 
   const renderItem1: ListRenderItem<Ayah> = ({ item: ayah }) => (
     <View style={styles.ayahContainer}>
+      <Stack.Screen
+        options={{
+          title: surahName,
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      />
       <Text style={styles.ayahText}>{ayah.text}</Text>
       {ayah.translation && (
         <Text style={styles.translationText}>{ayah.translation}</Text>
@@ -77,7 +85,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "#eee",
   },
   ayahText: {
-    fontFamily: "UthmanicHafs",
     fontSize: wp("5%"),
     textAlign: "right",
   },
@@ -91,7 +98,6 @@ const styles = StyleSheet.create({
     marginTop: wp("1%"),
   },
   translationText: {
-    fontFamily: "Roboto",
     fontSize: wp("4%"),
     color: "#666",
     marginTop: wp("1%"),

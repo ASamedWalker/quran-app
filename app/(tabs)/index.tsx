@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -9,7 +9,7 @@ import {
   SafeAreaView,
   Pressable,
 } from "react-native";
-// import { useFonts } from 'expo-font';
+// import { useFonts } from "expo-font";
 // import * as SplashScreen from 'expo-splash-screen';
 import { useQuery } from "@tanstack/react-query";
 import { getSurahList, Surah } from "@/api/quranapi";
@@ -24,37 +24,8 @@ import { Animated } from "react-native";
 import Card from "@/components/Card";
 import { categoryData } from "@/constants";
 
-
 const Home = () => {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number>(0);
-  // const [fontsLoaded] = useFonts({
-  //   "UthmanicHafs": require("../../assets/fonts/KFGQPC_UthmanicScriptHAFS_Regular.otf"),
-  //   "Roboto": require("../../assets/fonts/Roboto-Regular.ttf"),
-  //   "SpaceMono": require("../../assets/fonts/SpaceMono-Regular.ttf"),
-  // });
-
-  // useEffect(() => {
-  //   async function prepare() {
-  //     try {
-  //       await SplashScreen.preventAutoHideAsync();
-  //     } catch (e) {
-  //       console.warn(e);
-  //     } finally {
-  //       await new Promise((resolve) => setTimeout(resolve, 2000));
-  //       await SplashScreen.hideAsync();
-  //     }
-  //   }
-  //   prepare();
-  // }, []);
-
-
-
-  // if (!fontsLoaded) {
-  //   return null;
-  // } else {
-  //   SplashScreen.hideAsync();
-  // }
-
 
   // Fetching the list of Surahs
   const surahListQuery = useQuery({
@@ -94,7 +65,10 @@ const Home = () => {
       href={
         {
           pathname: `/surahDetails?surahNumber=${surah.number}`,
-          searchParams: { surahNumber: surah.number.toString() },
+          searchParams: {
+            surahNumber: surah.number.toString(),
+            surahName: surah.englishName,
+          },
         } as any
       }
       asChild
