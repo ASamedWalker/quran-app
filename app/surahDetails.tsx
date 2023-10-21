@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
+import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList, ListRenderItem } from "@shopify/flash-list";
 import { getSurahWithTranslation, Ayah } from "@/api/quranapi";
@@ -16,6 +16,7 @@ const SurahDetails: React.FC = () => {
     surahName: string;
   }>();
   const surahNumberInt = parseInt(surahNumberString, 10);
+  const router = useRouter();
 
   const surahDetailsQuery = useQuery({
     queryKey: ["surahDetails", surahNumberInt],
@@ -43,12 +44,17 @@ const SurahDetails: React.FC = () => {
     <View style={styles.ayahContainer}>
       <Stack.Screen
         options={{
-          title: surahName,
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
+          title: surahName ?? "Default Title",
         }}
       />
+      <Text
+        onPress={() => {
+          router.setParams({ surahName: "Updated Surah Name" });
+        }}
+      >
+        Update the title
+      </Text>
+
       <Text style={styles.ayahText}>{ayah.text}</Text>
       {ayah.translation && (
         <Text style={styles.translationText}>{ayah.translation}</Text>

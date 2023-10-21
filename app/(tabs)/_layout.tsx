@@ -11,7 +11,7 @@ import * as Haptics from "expo-haptics";
 
 const TabsLayout = () => {
   const renderIcon = (focused: boolean, name: string) => {
-    let iconName = focused ? name : `${name}-outline`;
+    let iconName = focused ? name : `${name}-outline` as keyof typeof Ionicons.glyphMap;
 
     // Trigger haptic feedback for the active tab
     if (focused) {
@@ -47,14 +47,6 @@ const TabsLayout = () => {
         options={{
           tabBarLabel: "Home",
           tabBarIcon: ({ focused }) => renderIcon(focused, "ios-home"),
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="surahDetails"
-        options={{
-          tabBarLabel: "Surahs",
-          tabBarIcon: ({ focused }) => renderIcon(focused, "ios-person-circle"),
           headerShown: false,
         }}
       />

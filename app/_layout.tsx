@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Stack } from "expo-router";
+import { useLocalSearchParams, Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -19,6 +19,7 @@ const HomeLayout = () => {
         }}
       >
         <Stack.Screen name="(tabs)" options={{ title: "Home" }} />
+        <Stack.Screen name="surahDetails" options={{title: 'Default Title'}} />
       </Stack>
     </QueryClientProvider>
   );
