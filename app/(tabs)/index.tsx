@@ -42,24 +42,6 @@ const Home = () => {
     />
   );
 
-  // const scale = useRef(new Animated.Value(1)).current;
-
-  // const surahPressIn = () => {
-  //   Animated.timing(scale, {
-  //     toValue: 0.97,
-  //     duration: 200,
-  //     useNativeDriver: true,
-  //   }).start();
-  // };
-
-  // const surahPressOut = () => {
-  //   Animated.timing(scale, {
-  //     toValue: 1,
-  //     duration: 200,
-  //     useNativeDriver: true,
-  //   }).start();
-  // };
-
   const renderItem2: ListRenderItem<Surah> = ({ item: surah }) => (
     <Link
       href={

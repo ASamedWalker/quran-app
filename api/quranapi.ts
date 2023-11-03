@@ -3,6 +3,8 @@ import axios from "axios";
 // 1. Define interfaces
 export interface Ayah {
   number: number;
+  audioUrl?: string;
+  audioSecondaryUrl?: string[];
   text: string;
   translation: string;
   numberInSurah: number;
@@ -25,11 +27,15 @@ export interface Surah {
 
 export const getSurahList = async (): Promise<Surah[]> => {
   try {
-    const response = await axios.get('http://api.alquran.cloud/v1/quran/quran-uthmani');
+    const response = await axios.get(
+      "http://api.alquran.cloud/v1/quran/quran-uthmani"
+    );
     const responseData = response.data;
 
     if (!responseData?.data?.surahs) {
-      throw new Error("Invalid data: 'surahs' property is missing or undefined");
+      throw new Error(
+        "Invalid data: 'surahs' property is missing or undefined"
+      );
     }
 
     // Map the surahs to exclude ayahs for the list view
@@ -38,7 +44,7 @@ export const getSurahList = async (): Promise<Surah[]> => {
       name: surah.name,
       englishName: surah.englishName,
       englishNameTranslation: surah.englishNameTranslation,
-      revelationType: surah.revelationType
+      revelationType: surah.revelationType,
     }));
   } catch (error: any) {
     // Handle the error gracefully, perhaps logging it or informing the user about the issue
@@ -47,46 +53,85 @@ export const getSurahList = async (): Promise<Surah[]> => {
   }
 };
 
-
-export const getSurahWithTranslation = async (surahNumber: number): Promise<Surah> => {
+export const getSurahWithTranslation = async (
+  surahNumber: number
+): Promise<Surah> => {
   try {
     // Fetch the original Surah data
-    const arabicResponse = await axios.get('http://api.alquran.cloud/v1/quran/quran-uthmani');
+    const arabicResponse = await axios.get(
+      "http://api.alquran.cloud/v1/quran/quran-uthmani"
+    );
     const arabicData = arabicResponse.data;
-    console.log(arabicData);
+    // console.log(arabicData);
 
     if (!arabicData?.data?.surahs) {
-      throw new Error("Invalid data: 'surahs' property is missing or undefined");
+      throw new Error(
+        "Invalid data: 'surahs' property is missing or undefined"
+      );
     }
 
     // Fetch the translation
-    const translationResponse = await axios.get(`http://api.alquran.cloud/v1/quran/en.asad`);
+    const translationResponse = await axios.get(
+      `http://api.alquran.cloud/v1/quran/en.asad`
+    );
     const translationData = translationResponse.data;
-    console.log(translationData);
+    // console.log(translationData);
 
     if (!translationData?.data?.surahs) {
-      throw new Error("Invalid data from Translation endpoint: 'surahs' property is missing or undefined");
+      throw new Error(
+        "Invalid data from Translation endpoint: 'surahs' property is missing or undefined"
+      );
     }
 
-    const arabicSurahData = arabicData.data.surahs.find((s: any) => s.number === surahNumber);
-    const translationSurahData = translationData.data.surahs.find((s: any) => s.number === surahNumber);
+    const arabicSurahData = arabicData.data.surahs.find(
+      (s: any) => s.number === surahNumber
+    );
+    const translationSurahData = translationData.data.surahs.find(
+      (s: any) => s.number === surahNumber
+    );
 
     if (!arabicSurahData || !translationSurahData) {
       throw new Error(`Surah with number ${surahNumber} not found`);
     }
 
-    const mergedAyahs = arabicSurahData.ayahs.map((ayahData: any, index: number) => ({
-      number: ayahData.number,
-      text: ayahData.text,
-      translation: translationSurahData.ayahs[index].text,
-      numberInSurah: ayahData.numberInSurah,
-      juz: ayahData.juz,
-      manzil: ayahData.manzil,
-      page: ayahData.page,
-      ruku: ayahData.ruku,
-      hizbQuarter: ayahData.hizbQuarter,
-      sajda: ayahData.sajda
-    }));
+    // Fetch the audio data
+    const audioResponse = await axios.get(
+      `http://api.alquran.cloud/v1/quran/ar.alafasy`
+    );
+    const audioData = audioResponse.data;
+
+    if (!audioData?.data?.surahs) {
+      throw new Error(
+        "Invalid data from Audio endpoint: 'surahs' property is missing or undefined"
+      );
+    }
+
+    const audioSurahData = audioData.data.surahs.find(
+      (s: any) => s.number === surahNumber
+    );
+
+    if (!audioSurahData) {
+      throw new Error(
+        `Surah with number ${surahNumber} not found in the audio data`
+      );
+    }
+
+    const mergedAyahs = arabicSurahData.ayahs.map(
+      (ayahData: any, index: number) => ({
+        number: ayahData.number,
+        text: ayahData.text,
+        translation: translationSurahData.ayahs[index].text,
+        numberInSurah: ayahData.numberInSurah,
+        juz: ayahData.juz,
+        manzil: ayahData.manzil,
+        page: ayahData.page,
+        ruku: ayahData.ruku,
+        hizbQuarter: ayahData.hizbQuarter,
+        sajda: ayahData.sajda,
+        audioUrl: audioSurahData.ayahs[index].audio,
+        audioSecondaryUrl: audioSurahData.ayahs[index].audioSecondary,
+      })
+    );
 
     const surah: Surah = {
       number: arabicSurahData.number,
@@ -94,20 +139,16 @@ export const getSurahWithTranslation = async (surahNumber: number): Promise<Sura
       englishName: arabicSurahData.englishName,
       englishNameTranslation: arabicSurahData.englishNameTranslation,
       revelationType: arabicSurahData.revelationType,
-      ayahs: mergedAyahs
+      ayahs: mergedAyahs,
     };
 
     return surah;
-
   } catch (error: any) {
     // Handle the error gracefully, perhaps logging it or informing the user about the issue
-    console.error("Error fetching Surah with translation:", error.message);
+    console.error(
+      "Error fetching Surah with translation and audio:",
+      error.message
+    );
     throw error;
   }
-};
-
-const delay = (t: number) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, t);
-  });
 };

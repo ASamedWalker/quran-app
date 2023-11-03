@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Button } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import { Audio } from "expo-av";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList, ListRenderItem } from "@shopify/flash-list";
 import { getSurahWithTranslation, Ayah } from "@/api/quranapi";
@@ -10,26 +11,46 @@ import {
 } from "react-native-responsive-screen";
 
 const SurahDetails: React.FC = () => {
+  const [sound, setSound] = useState<Audio.Sound>();
   // Access the params from the URL.
   const { surahNumber: surahNumberString, surahName } = useLocalSearchParams<{
     surahNumber: string;
     surahName: string;
   }>();
   const surahNumberInt = parseInt(surahNumberString, 10);
-  const router = useRouter();
 
   const surahDetailsQuery = useQuery({
     queryKey: ["surahDetails", surahNumberInt],
     queryFn: () => getSurahWithTranslation(surahNumberInt),
     refetchOnMount: false,
     enabled: !!surahNumberInt, // only run the query if surahNumber exists
-    onSuccess: (data) => {
-      console.log("Data fetched successfully: ", data);
-    },
-    onError: (error) => {
-      console.error("Error fetching data: ", error);
-    },
+    // onSuccess: (data) => {
+    //   console.log("Data fetched successfully: ", data);
+    // },
+    // onError: (error) => {
+    //   console.error("Error fetching data: ", error);
+    // },
   });
+
+  async function playSound(url: string) {
+    console.log("Attempting to play:", url);
+    try {
+      const { sound } = await Audio.Sound.createAsync({ uri: url });
+      setSound(sound);
+      await sound.playAsync();
+    } catch (error) {
+      console.error("Error playing sound:", error);
+    }
+  }
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          console.log('Unloading Sound');
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
 
   if (surahDetailsQuery.isLoading) {
     return <Text>Loading...</Text>;
@@ -40,21 +61,13 @@ const SurahDetails: React.FC = () => {
     return <Text>Error: {err.message}</Text>;
   }
 
-  const renderItem1: ListRenderItem<Ayah> = ({ item: ayah }) => (
-    <View style={styles.ayahContainer}>
-      <Stack.Screen
-        options={{
-          title: surahName ?? "Default Title",
-        }}
-      />
-      <Text
-        onPress={() => {
-          router.setParams({ surahName: "Updated Surah Name" });
-        }}
-      >
-        Update the title
-      </Text>
-
+  const renderItem1: ListRenderItem<Ayah> = ({ item: ayah, index }) => (
+    <View
+      style={[
+        styles.ayahContainer,
+        { backgroundColor: index % 2 === 0 ? "#f5f5f5" : "#e6dbc8" },
+      ]}
+    >
       <Text style={styles.ayahText}>{ayah.text}</Text>
       {ayah.translation && (
         <Text style={styles.translationText}>{ayah.translation}</Text>
@@ -63,6 +76,8 @@ const SurahDetails: React.FC = () => {
         Ayah: {ayah.numberInSurah} | Juz: {ayah.juz} | Page: {ayah.page}
       </Text>
       {ayah.sajda ? <Text style={styles.sajdaText}>Contains Sajda</Text> : null}
+      <Button title="Play Ayah" onPress={() => ayah.audioUrl && playSound(ayah.audioUrl)} />
+
     </View>
   );
 
@@ -83,16 +98,19 @@ const SurahDetails: React.FC = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   ayahContainer: {
-    padding: wp("2%"),
+    alignItems: "center",
+    justifyContent: "center",
+    padding: wp("4%"),
+    paddingLeft: wp("4%"), // Add horizontal padding
+    paddingRight: wp("4%"), // Add horizontal padding
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
   ayahText: {
     fontSize: wp("5%"),
-    textAlign: "right",
+    textAlign: "center",
   },
   ayahDetails: {
     fontSize: wp("3%"),
@@ -107,6 +125,7 @@ const styles = StyleSheet.create({
     fontSize: wp("4%"),
     color: "#666",
     marginTop: wp("1%"),
+    textAlign: "center",
   },
 });
 
